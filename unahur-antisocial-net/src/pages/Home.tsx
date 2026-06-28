@@ -6,6 +6,8 @@ import { getAllUsers } from '../services/users';
 import type { Post } from '../types';
 import NewPostModal from '../components/NewPostModal';
 import PostImagePreview from '../components/PostImagePreview';
+import TerminalAlert from '../components/TerminalAlert';
+import AuthorsTerminal from '../components/AuthorsTerminal';
 
 export default function Home() {
   const navigate = useNavigate();
@@ -17,6 +19,9 @@ export default function Home() {
   const [loading, setLoading] = useState(true);
   
   const [isPostModalOpen, setIsPostModalOpen] = useState(false);
+  const [isAuthorsOpen, setIsAuthorsOpen] = useState(false);
+  
+  const [alert, setAlert] = useState<{ message: string, type: 'success' | 'error' } | null>(null);
 
   const fetchFeed = useCallback(async () => {
     try {
@@ -33,6 +38,7 @@ export default function Home() {
       setPosts(fetchedPosts.reverse());
     } catch (error) {
       console.error("Error fetching logs:", error);
+      setAlert({ message: 'FAILED TO FETCH GLOBAL REGISTRY', type: 'error' });
     } finally {
       setLoading(false);
     }
@@ -45,6 +51,24 @@ export default function Home() {
     initFetch();
   }, [fetchFeed]);
 
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) {
+        return;
+      }
+      if (e.key === '1') {
+        navigate('/home');
+      } else if (e.key === '2') {
+        navigate('/profile');
+      } else if (e.key === '3') {
+        setIsPostModalOpen(true);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [navigate]);
+
   const handleLogout = () => {
     logout();
     navigate('/login');
@@ -53,18 +77,39 @@ export default function Home() {
   return (
     <div className="flex flex-col min-h-screen glow-text bg-black text-[#33ff00] selection:bg-[#33ff00] selection:text-black font-mono relative">
       
+      {alert && (
+        <TerminalAlert 
+          message={alert.message} 
+          type={alert.type} 
+          onClose={() => setAlert(null)} 
+        />
+      )}
+
       {isPostModalOpen && (
         <NewPostModal 
           onClose={() => setIsPostModalOpen(false)} 
-          onSuccess={fetchFeed} 
+          onSuccess={() => {
+            fetchFeed();
+            setAlert({ message: 'TRANSMISSION COMPLETE.', type: 'success' });
+          }} 
         />
+      )}
+
+      {isAuthorsOpen && (
+        <AuthorsTerminal onClose={() => setIsAuthorsOpen(false)} />
       )}
 
       <nav className="border-b-2 border-[#33ff00] bg-black p-3 flex flex-col md:flex-row justify-between items-center gap-4 sticky top-0 z-40 shadow-[0_4px_15px_rgba(51,255,0,0.15)]">
         <div className="flex flex-wrap items-center gap-3">
-          <div className="font-bold text-lg mr-4 bg-[#33ff00] text-black px-3 py-1 uppercase tracking-widest">
+          
+          <button 
+            onClick={() => setIsAuthorsOpen(true)}
+            className="font-bold text-lg mr-4 bg-[#33ff00] hover:bg-white text-black px-3 py-1 uppercase tracking-widest transition-colors cursor-pointer outline-none"
+            title="SYS_CREDITS"
+          >
             UHN_OS
-          </div>
+          </button>
+
           <button 
             onClick={() => navigate('/home')}
             className={`px-4 py-1 uppercase text-sm font-bold border transition-all cursor-pointer ${activeTab === 'home' ? 'bg-[#33ff00] text-black border-[#33ff00]' : 'border-transparent hover:border-dashed hover:border-[#33ff00]'}`}
@@ -82,7 +127,7 @@ export default function Home() {
             onClick={() => setIsPostModalOpen(true)}
             className="px-4 py-1 uppercase text-sm font-bold border border-[#33ff00] hover:bg-[#33ff00] hover:text-black transition-all ml-2 cursor-pointer"
           >
-            [F9] Post
+            [3] Post
           </button>
         </div>
 

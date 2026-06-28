@@ -1,5 +1,4 @@
 import { useAuth } from '../hooks/useAuth';
-import { getAvatarForUser } from '../utils/avatars';
 
 export default function ProfileFetch() {
   const { user } = useAuth();
@@ -7,16 +6,29 @@ export default function ProfileFetch() {
   const username = user?.nickName.toLowerCase() || 'guest_user';
   const hostname = 'unahur-antisocial';
 
-  const userId = user?.id || 0;
-  
-  const asciiArt = getAvatarForUser(userId);
+  const profileImageUrl = "https://images-wixmp-ed30a86b8c4ca887773594c2.wixmp.com/f/1ba9a23c-fbb4-4dff-8c67-3f0dbbb12f77/dbbjptx-6e952f9e-4151-4b97-90e6-71487948a81e.gif?token=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ1cm46YXBwOjdlMGQxODg5ODIyNjQzNzNhNWYwZDQxNWVhMGQyNmUwIiwiaXNzIjoidXJuOmFwcDo3ZTBkMTg4OTgyMjY0MzczYTVmMGQ0MTVlYTBkMjZlMCIsIm9iaiI6W1t7InBhdGgiOiIvZi8xYmE5YTIzYy1mYmI0LTRkZmYtOGM2Ny0zZjBkYmJiMTJmNzcvZGJianB0eC02ZTk1MmY5ZS00MTUxLTRiOTctOTBlNi03MTQ4Nzk0OGE4MWUuZ2lmIn1dXSwiYXVkIjpbInVybjpzZXJ2aWNlOmZpbGUuZG93bmxvYWQiXX0.ogMnby2QfRwL_YF3CLqAYTmkTnTotV-5MWg-3mUT094"; 
 
   return (
     <div className="w-full border border-[#33ff00]/40 bg-[#33ff00]/5 p-4 sm:p-6 mb-8 font-mono flex flex-col md:flex-row gap-6 md:gap-10 items-center md:items-start shadow-[0_0_15px_rgba(51,255,0,0.05)] transition-all hover:border-[#33ff00]/80">
       
-      <pre className="text-xs sm:text-sm font-bold leading-tight text-[#33ff00] drop-shadow-[0_0_8px_rgba(51,255,0,0.6)] flex-none text-left">
-        {asciiArt}
-      </pre>
+      <div className="flex-none w-32 h-32 sm:w-40 sm:h-40 relative group border border-[#33ff00]/30 p-1">
+        
+        <div className="absolute -top-1 -left-1 w-3 h-3 border-t-2 border-l-2 border-[#33ff00] z-10" />
+        <div className="absolute -top-1 -right-1 w-3 h-3 border-t-2 border-r-2 border-[#33ff00] z-10" />
+        <div className="absolute -bottom-1 -left-1 w-3 h-3 border-b-2 border-l-2 border-[#33ff00] z-10" />
+        <div className="absolute -bottom-1 -right-1 w-3 h-3 border-b-2 border-r-2 border-[#33ff00] z-10" />
+        
+        <img 
+          src={profileImageUrl}
+          alt="Profile Avatar"
+
+          className="w-full h-full object-cover opacity-90 transition-opacity group-hover:opacity-100 mix-blend-screen"
+        />
+        
+        <div 
+          className="absolute inset-0 bg-[linear-gradient(rgba(51,255,0,0)_0%,rgba(51,255,0,0.15)_50%,rgba(51,255,0,0)_100%)] opacity-20 pointer-events-none" 
+        />
+      </div>
 
       <div className="flex-1 w-full text-sm sm:text-base">
         
@@ -73,6 +85,7 @@ export default function ProfileFetch() {
           </div>
         </div>
 
+        {/* cambiarlo en proxima update   */}
         <div className="mt-5 flex gap-1">
           <div className="w-5 h-5 bg-black border border-[#33ff00]/50"></div>
           <div className="w-5 h-5 bg-[#115500]"></div>

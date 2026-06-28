@@ -7,20 +7,15 @@ import ProfileFetch from '../components/ProfileFetch';
 import PostImagePreview from '../components/PostImagePreview';
 
 export default function Profile() {
-  const { user, logout } = useAuth(); // fixear error
+  const { user, logout } = useAuth();
   const navigate = useNavigate();
   const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [isShuttingDown, setIsShuttingDown] = useState(false);
 
   const handleLogout = () => {
-    setIsShuttingDown(true); 
-    
-    setTimeout(() => {
-      logout();
-      navigate('/login');
-    }, 600);
+    logout();
+    navigate('/login');
   };
 
   useEffect(() => {
@@ -39,10 +34,28 @@ export default function Profile() {
     fetchPosts();
   }, [user]);
 
-  return (
-    <div className={`min-h-screen bg-black text-[#33ff00] font-mono glow-text p-4 sm:p-8 max-w-4xl mx-auto selection:bg-[#33ff00] selection:text-black ${isShuttingDown ? 'crt-shutdown' : ''}`}>
+  //ATAJOS DE TECLADO
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // bloquear atajos al escribir un post
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) {
+        return;
+      }
       
-      {/* Barra de Navegación / Comandos Superiores */}
+      if (e.key === '1') {
+        navigate('/home');
+      } else if (e.key === '2') {
+        navigate('/profile');
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [navigate]);
+
+  return (
+    <div className="min-h-screen bg-black text-[#33ff00] font-mono glow-text p-4 sm:p-8 max-w-4xl mx-auto selection:bg-[#33ff00] selection:text-black">
+      
       <div className="flex flex-wrap items-center justify-between gap-4 mb-8 border-b-2 border-dashed border-[#33ff00]/50 pb-4">
         <div className="font-bold text-lg terminal-cursor break-all">~/users/{user?.nickName}/profile</div>
         
@@ -51,7 +64,7 @@ export default function Profile() {
             onClick={() => navigate('/home')}
             className="btn-glitch hover:bg-[#33ff00] hover:text-black px-3 py-1 uppercase font-bold transition-colors border border-transparent hover:border-[#33ff00] cursor-pointer"
           >
-            cd ../home
+            [1] cd ../home
           </button>
 
           <button 
@@ -65,7 +78,6 @@ export default function Profile() {
 
       <ProfileFetch />
 
-      {/* Sección de Publicaciones */}
       <div className="mt-10">
         <h2 className="text-xl font-bold mb-6 flex items-center gap-2">
           <span className="opacity-70">$</span> ls -la ./logged_entries
@@ -104,7 +116,6 @@ export default function Profile() {
 
                 <PostImagePreview postId={post.id} />
                 
-                {/* Mapeo de Etiquetas */}
                 {(post.tags?.length || post.Tags?.length) ? (
                   <div className="mt-4 flex flex-wrap gap-2">
                     {(post.tags || post.Tags || []).map((tag: string | number | { id: string | number; name: string }, idx: number) => {
