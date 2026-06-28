@@ -1,10 +1,9 @@
 // src/types/index.ts
 
 export interface User {
-  id: string | number; // Le ponemos string | number por si el profe usa UUIDs o IDs numéricos
+  id: string | number; 
   nickName: string;
-  // Nota: El TP dice que el password es siempre "123456" y se valida localmente, 
-  // así que es probable que la API no devuelva el campo password por seguridad.
+
 }
 
 export interface Tag {
@@ -16,18 +15,17 @@ export interface Post {
   id: string | number;
   description: string;
   
-  // Campos del usuario (locales y del backend)
-  userId: string | number;  // El que usás para la creación
-  UserId?: string | number; // El que devuelve el backend real con mayúscula
+  
+  userId: string | number;  
+  UserId?: string | number;
   User?: {
     id: string | number;
     nickName: string;
     email?: string;
   };
 
-  // Campos de etiquetas (locales y del backend)
-  tags: (string | number)[]; // El array plano que usás al crear
-  Tags?: {                   // El objeto que devuelve el backend mapeado
+  tags: (string | number)[]; 
+  Tags?: {                   
     id: string | number;
     name: string;
   }[];
@@ -58,7 +56,6 @@ export interface CreatePostPayload {
   tags: (string | number)[];
 }
 
-// respuesta genérica de errores de la API 
 export interface ApiError {
   error: string;
   message?: string;

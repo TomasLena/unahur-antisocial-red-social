@@ -5,6 +5,7 @@ import { getPostsByUser } from '../services/posts';
 import type { Post } from '../types';
 import ProfileFetch from '../components/ProfileFetch';
 import PostImagePreview from '../components/PostImagePreview';
+import ThemeToggle from '../components/ThemeToggle';
 
 export default function Profile() {
   const { user, logout } = useAuth();
@@ -66,6 +67,9 @@ export default function Profile() {
           >
             [1] cd ../home
           </button>
+
+
+          <ThemeToggle />
 
           <button 
             onClick={handleLogout}

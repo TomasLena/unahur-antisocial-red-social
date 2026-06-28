@@ -94,15 +94,10 @@ export const ASCII_AVATARS = [
   |   \\____/   |`
 ];
 
-/**
- * Función que recibe un ID (puede ser string o número) 
- * y devuelve siempre el mismo avatar para ese ID.
- */
+
 export const getAvatarForUser = (userId: string | number): string => {
-  // Convertimos el ID a número (si es string) o usamos la longitud del string
   const idNum = typeof userId === 'number' ? userId : userId.length;
   
-  // El operador módulo (%) hace que si el ID es mayor a 10, vuelva a empezar desde 0
   const index = idNum % ASCII_AVATARS.length;
   
   return ASCII_AVATARS[index];

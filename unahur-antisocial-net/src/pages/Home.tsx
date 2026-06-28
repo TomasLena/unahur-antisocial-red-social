@@ -8,6 +8,7 @@ import NewPostModal from '../components/NewPostModal';
 import PostImagePreview from '../components/PostImagePreview';
 import TerminalAlert from '../components/TerminalAlert';
 import AuthorsTerminal from '../components/AuthorsTerminal';
+import ThemeToggle from '../components/ThemeToggle';
 
 export default function Home() {
   const navigate = useNavigate();
@@ -135,6 +136,9 @@ export default function Home() {
           <span className="hidden sm:inline uppercase text-sm">
             USER: @{user?.nickName || 'guest'}
           </span>
+          
+          <ThemeToggle />
+          
           <button 
             onClick={handleLogout}
             className="hover:bg-red-500 hover:text-black text-red-500 border border-red-500 px-3 py-1 uppercase transition-colors text-sm font-bold cursor-pointer"
