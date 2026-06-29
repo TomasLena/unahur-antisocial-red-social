@@ -21,3 +21,9 @@ Sigue estos pasos en orden para levantar el repositorio correctamente.
 
 ### 5. Prender el Frontend
 - Una vez instaladas las dependencias, inicia el servidor del frontend.
+
+
+### CREDENCIALES
+
+- la contraseña siempre es fija (esta en el enunciado)
+- si queres entra registrate con un nick y si se te cierra sesion entra con el mismo usuario y la contraseña mencionada arriba.
