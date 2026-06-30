@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 
@@ -7,12 +7,83 @@ export default function Login() {
   const [nickName, setNickName] = useState('');
   const [password, setPassword] = useState('');
   
+  const [localError, setLocalError] = useState<string | null>(null);
   const [isBooting, setIsBooting] = useState(false);
   const [bootLogs, setBootLogs] = useState<string[]>([]);
   const [isBootComplete, setIsBootComplete] = useState(false);
 
   const { login, register, error, clearError } = useAuth();
   const navigate = useNavigate();
+  
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas || isBooting) return;
+
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    let animationFrameId: number;
+
+    const resizeCanvas = () => {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    };
+    resizeCanvas();
+    window.addEventListener('resize', resizeCanvas);
+
+    const katakana = "ｱｲｳｴｵｶｷｸｹｺｻｼｽｾｿﾀﾁﾂﾃﾄﾅﾆﾇﾈﾉﾊﾋﾌﾍﾎﾏﾐﾑﾒﾓﾔﾕﾖﾗﾘﾙﾚﾛﾜﾝ1023456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    const alphabet = katakana.split("");
+
+    const fontSize = 14;
+    const columns = canvas.width / fontSize;
+
+    const rainDrops: number[] = [];
+    for (let x = 0; x < columns; x++) {
+      rainDrops[x] = Math.random() * -100;
+    }
+
+    const draw = () => {
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      ctx.fillStyle = 'rgba(51, 255, 0, 0.45)'; 
+      ctx.font = fontSize + 'px monospace';
+
+      for (let i = 0; i < rainDrops.length; i++) {
+        const text = alphabet[Math.floor(Math.random() * alphabet.length)];
+        ctx.fillText(text, i * fontSize, rainDrops[i] * fontSize);
+
+        if (rainDrops[i] * fontSize > canvas.height && Math.random() > 0.975) {
+          rainDrops[i] = 0;
+        }
+        rainDrops[i]++;
+      }
+    };
+
+    let lastTime = 0;
+    const fps = 30;
+    const interval = 1000 / fps;
+
+    const animate = (timestamp: number) => {
+      if (!lastTime) lastTime = timestamp;
+      const elapsed = timestamp - lastTime;
+
+      if (elapsed > interval) {
+        draw();
+        lastTime = timestamp - (elapsed % interval);
+      }
+      animationFrameId = requestAnimationFrame(animate);
+    };
+
+    animationFrameId = requestAnimationFrame(animate);
+
+    return () => {
+      window.removeEventListener('resize', resizeCanvas);
+      cancelAnimationFrame(animationFrameId);
+    };
+  }, [isBooting]);
 
   useEffect(() => {
     if (!isBooting) return;
@@ -92,12 +163,19 @@ export default function Login() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!nickName.trim()) return;
     clearError();
+    setLocalError(null);
+    
+    const username = nickName.trim();
+
+    if (!username || (isLogin && !password)) {
+      setLocalError("VALIDATION_FAILED: Required authentication fields are missing.");
+      return;
+    }
     
     const success = isLogin 
-      ? await login(nickName, password) 
-      : await register(nickName);
+      ? await login(username, password) 
+      : await register(username);
 
     if (success) {
       setBootLogs([]);
@@ -115,10 +193,21 @@ export default function Login() {
   `;
 
   return (
-    <div className="min-h-screen bg-black text-[#33ff00] font-mono glow-text selection:bg-[#33ff00] selection:text-black overflow-x-hidden">
+    <div className="min-h-screen bg-black text-[#33ff00] font-mono glow-text selection:bg-[#33ff00] selection:text-black overflow-x-hidden relative">
+      
+      {!isBooting && (
+        <canvas 
+          ref={canvasRef} 
+          className="absolute top-0 left-0 w-full h-full pointer-events-none z-0"
+        />
+      )}
+
+      {!isBooting && (
+        <div className="absolute top-0 left-0 w-full h-full pointer-events-none z-10 bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.25)_50%),linear-gradient(90deg,rgba(255,0,0,0.06),rgba(0,255,0,0.02),rgba(0,0,255,0.06))] bg-[length:100%_4px,3px_100%]"/>
+      )}
       
       {isBooting ? (
-        <div className="p-4 sm:p-6 flex flex-col items-start justify-start text-left w-full h-full">
+        <div className="p-4 sm:p-6 flex flex-col items-start justify-start text-left w-full h-full relative z-20">
           {bootLogs.map((log, index) => (
             <div key={index} className={`whitespace-pre-wrap leading-relaxed w-full ${log.includes('WARN') ? 'text-yellow-500' : ''}`}>
               {log === "" ? <br /> : log}
@@ -134,19 +223,19 @@ export default function Login() {
           )}
         </div>
       ) : (
-        <div className="flex flex-col items-center justify-center min-h-screen p-4">
+        <div className="flex flex-col items-center justify-center min-h-screen p-4 relative z-20">
           <pre className="text-xs sm:text-sm md:text-base mb-8 text-[#33ff00] font-bold leading-tight whitespace-pre-wrap text-center drop-shadow-md">
             {asciiArt}
           </pre>
 
-          <div className="w-full max-w-xl border-2 border-[#33ff00] p-6 sm:p-8 bg-black shadow-[0_0_20px_rgba(51,255,0,0.2)] flex flex-col">
+          <div className="w-full max-w-xl border-2 border-[#33ff00] p-6 sm:p-8 bg-black/90 shadow-[0_0_20px_rgba(51,255,0,0.2)] flex flex-col backdrop-blur-xs">
             <h1 className="text-xl sm:text-2xl font-bold mb-6 uppercase border-b-2 border-dashed border-[#33ff00] pb-3">
               {isLogin ? '> EXECUTE LOGIN' : '> CREATE USER_INSTANCE'}
             </h1>
 
-            {error && (
+            {(localError || error) && (
               <div className="mb-6 p-3 border border-red-500 bg-red-500/10 text-red-500 text-sm">
-                [ERROR_LOG]: {error}
+                [ERROR_LOG]: {localError || error}
               </div>
             )}
 
@@ -189,7 +278,7 @@ export default function Login() {
               <span className="opacity-70 text-sm sm:text-base">{isLogin ? 'No module found?' : 'Module exists?'}</span>
               <button 
                 type="button"
-                onClick={() => { setIsLogin(!isLogin); clearError(); }}
+                onClick={() => { setIsLogin(!isLogin); clearError(); setLocalError(null); }}
                 className="hover:bg-[#33ff00] hover:text-black px-3 py-1 uppercase font-bold text-sm sm:text-base blinking-cursor transition-colors border border-transparent hover:border-[#33ff00] cursor-pointer"
               >
                 {isLogin ? 'REGISTER.exe' : 'LOGIN.sh'}

@@ -24,7 +24,6 @@ export default function PostDetail() {
   const fetchPostData = useCallback(async () => {
     if (!id) return;
     try {
-      // Llamada corregida usando getImagesByPostId
       const [fetchedPost, fetchedComments, fetchedImages] = await Promise.all([
         getPostById(id),
         getCommentsByPostId(id),
@@ -60,7 +59,7 @@ export default function PostDetail() {
         postId: id
       });
       setNewComment('');
-      await fetchPostData(); // Recarga todo para ver el nuevo comentario
+      await fetchPostData();
     } catch (err) {
       console.error("Error writing comment:", err);
     } finally {
