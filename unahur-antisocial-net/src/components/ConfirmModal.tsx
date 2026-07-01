@@ -9,7 +9,7 @@ export default function ConfirmModal({ isOpen, onClose, onConfirm, title }: Conf
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/90 p-4">
+    <div className="fixed inset-0 z-100 flex items-center justify-center bg-black/90 p-4">
       <div className="bg-black border border-[#33ff00] p-12 w-full max-w-2xl relative shadow-[0_0_20px_rgba(51,255,0,0.2)] overflow-hidden">
         
         <div 

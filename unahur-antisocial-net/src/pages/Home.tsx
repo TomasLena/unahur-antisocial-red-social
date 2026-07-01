@@ -109,7 +109,7 @@ export default function Home() {
         title=" > ERROR [LOG]: ¿END_TRANSMISSION?"
       />
 
-      <div className="fixed top-0 left-0 w-full h-full pointer-events-none z-10 bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.15)_50%)] bg-[length:100%_4px]"/>
+      <div className="fixed top-0 left-0 w-full h-full pointer-events-none z-10 bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.15)_50%)] bg-size-[100%_4px]"/>
 
       <div className="relative z-20 flex flex-col min-h-screen w-full">
         
@@ -178,7 +178,7 @@ export default function Home() {
           </div>
         </nav>
 
-        <div className="bg-[#33ff00]/10 border-b border-[#33ff00]/50 p-2 px-6 text-sm uppercase flex items-center gap-2 bg-black/80 backdrop-blur-xs">
+        <div className="bg-[#33ff00]/10 border-b border-[#33ff00]/50 p-2 px-6 text-sm uppercase flex items-center gap-2 backdrop-blur-xs">
             <span className="opacity-70">PS C:\\UHN_NET\\</span>
             <span className="blinking-cursor font-bold text-[#33ff00]">home.exe</span>
         </div>
