@@ -2,8 +2,8 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '../hooks/useAuth';
 import { createPost } from '../services/posts';
 import { createPostImage } from '../services/postImages';
-
 import { getTags } from '../services/tags';
+import { useSound } from '../hooks/useSound'; // Importamos el hook
 import type { Tag } from '../types';
 
 interface NewPostModalProps {
@@ -13,6 +13,8 @@ interface NewPostModalProps {
 
 export default function NewPostModal({ onClose, onSuccess }: NewPostModalProps) {
   const { user } = useAuth();
+  const { playBip } = useSound(); // Inicializamos el sonido
+  
   const [description, setDescription] = useState('');
   const [imageUrl, setImageUrl] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -20,7 +22,6 @@ export default function NewPostModal({ onClose, onSuccess }: NewPostModalProps) 
 
   const [availableTags, setAvailableTags] = useState<Tag[]>([]);
   const [selectedTagIds, setSelectedTagIds] = useState<Array<string | number>>([]);
-
 
   useEffect(() => {
     const fetchTags = async () => {
@@ -33,7 +34,6 @@ export default function NewPostModal({ onClose, onSuccess }: NewPostModalProps) 
     };
     fetchTags();
   }, []);
-
   
   const toggleTag = (id: string | number) => {
     setSelectedTagIds(prev => 
@@ -105,6 +105,7 @@ export default function NewPostModal({ onClose, onSuccess }: NewPostModalProps) 
               placeholder="Enter text sequence here..."
               value={description}
               onChange={(e) => setDescription(e.target.value)}
+              onKeyDown={playBip} // Sonido al escribir
               disabled={isSubmitting}
               autoFocus
             />
@@ -118,6 +119,7 @@ export default function NewPostModal({ onClose, onSuccess }: NewPostModalProps) 
               placeholder="https://..."
               value={imageUrl}
               onChange={(e) => setImageUrl(e.target.value)}
+              onKeyDown={playBip} // Sonido al escribir
               disabled={isSubmitting}
             />
           </div>

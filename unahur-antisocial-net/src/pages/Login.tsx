@@ -1,6 +1,8 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
+import bipSound from '../assets/bip.mp3';
+import bootingSound from '../assets/carga_login.mp3';
 
 export default function Login() {
   const [isLogin, setIsLogin] = useState(true);
@@ -14,79 +16,26 @@ export default function Login() {
 
   const { login, register, error, clearError } = useAuth();
   const navigate = useNavigate();
-  
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas || isBooting) return;
-
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-
-    let animationFrameId: number;
-
-    const resizeCanvas = () => {
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight;
-    };
-    resizeCanvas();
-    window.addEventListener('resize', resizeCanvas);
-
-    const katakana = "ｱｲｳｴｵｶｷｸｹｺｻｼｽｾｿﾀﾁﾂﾃﾄﾅﾆﾇﾈﾉﾊﾋﾌﾍﾎﾏﾐﾑﾒﾓﾔﾕﾖﾗﾘﾙﾚﾛﾜﾝ1023456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-    const alphabet = katakana.split("");
-
-    const fontSize = 14;
-    const columns = canvas.width / fontSize;
-
-    const rainDrops: number[] = [];
-    for (let x = 0; x < columns; x++) {
-      rainDrops[x] = Math.random() * -100;
-    }
-
-    const draw = () => {
-      ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-      ctx.fillStyle = 'rgba(51, 255, 0, 0.45)'; 
-      ctx.font = fontSize + 'px monospace';
-
-      for (let i = 0; i < rainDrops.length; i++) {
-        const text = alphabet[Math.floor(Math.random() * alphabet.length)];
-        ctx.fillText(text, i * fontSize, rainDrops[i] * fontSize);
-
-        if (rainDrops[i] * fontSize > canvas.height && Math.random() > 0.975) {
-          rainDrops[i] = 0;
-        }
-        rainDrops[i]++;
-      }
-    };
-
-    let lastTime = 0;
-    const fps = 30;
-    const interval = 1000 / fps;
-
-    const animate = (timestamp: number) => {
-      if (!lastTime) lastTime = timestamp;
-      const elapsed = timestamp - lastTime;
-
-      if (elapsed > interval) {
-        draw();
-        lastTime = timestamp - (elapsed % interval);
-      }
-      animationFrameId = requestAnimationFrame(animate);
-    };
-
-    animationFrameId = requestAnimationFrame(animate);
-
-    return () => {
-      window.removeEventListener('resize', resizeCanvas);
-      cancelAnimationFrame(animationFrameId);
-    };
-  }, [isBooting]);
-
+  const audio = useMemo(() => {
+    const a = new Audio(bipSound);
+    a.volume = 1.0; 
+    return a;
+  }, []);
+  
+  const playBip = () => {
+    audio.currentTime = 0;
+    audio.play().catch(() => {});
+  };
+  const bootAudio = useMemo(() => {
+    const a = new Audio(bootingSound);
+    a.volume = 1.0; 
+    return a;
+  }, []);
   useEffect(() => {
     if (!isBooting) return;
+    bootAudio.play().catch(() => {});
 
     let isMounted = true;
     const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
@@ -124,9 +73,9 @@ export default function Login() {
         await delay(200);
       }
 
-      addLog(`[                    ] 0% reify:user_context: timing reifyNode`);
+      addLog(`[                     ] 0% reify:user_context: timing reifyNode`);
       await delay(400);
-      updateLastLog(`[=====               ] 25% reify:user_context: sill reify`);
+      updateLastLog(`[=====              ] 25% reify:user_context: sill reify`);
       await delay(600);
       updateLastLog(`[==========          ] 50% reify:user_context: action:extract`);
       await delay(900);
@@ -150,6 +99,9 @@ export default function Login() {
 
       if (isMounted) {
         setIsBootComplete(true);
+        bootAudio.pause();
+        bootAudio.currentTime = 0;
+        
         setTimeout(() => {
           navigate('/home');
         }, 1000);
@@ -187,9 +139,9 @@ export default function Login() {
   _   _ _   _   _   _   _   _ _____  
  | | | | \\ | | / \\ | | | | | |  __ \\ 
  | | | |  \\| |/ _ \\| |_| | | | |__) |
- | |_| | . \` / ___ \\  _  | |_|  _  / 
+ | |_| | .  / ___ \\  _  | |_|  _  / 
   \\___/|_|\\_/_/   \\_\\_| |_|\\___/_| \\_\\
-    ANTI-SOCIAL_NET v2.0 [SYS_BOOT]
+   ANTI-SOCIAL_NET v2.0 [SYS_BOOT]
   `;
 
   return (
@@ -243,10 +195,11 @@ export default function Login() {
               <div className="space-y-2">
                 <label className="block text-sm sm:text-base uppercase tracking-wider text-[#33ff00]/70">Username</label>
                 <div className="flex items-center bg-[#33ff00]/5 border-b-2 border-[#33ff00]/50 focus-within:border-[#33ff00] focus-within:bg-[#33ff00]/10 transition-all px-2 overflow-hidden">
-                  <span className="mr-2 text-sm sm:text-base opacity-80 whitespace-nowrap">PS C:\\Users\\Urano&gt;</span>
+                  <span className="mr-2 text-sm sm:text-base opacity-80 whitespace-nowrap">PS C:\Users\Urano&gt;</span>
                   <input
                     type="text"
                     autoComplete="off"
+                    onKeyDown={playBip}
                     className="w-full bg-transparent py-2 text-lg sm:text-xl outline-none placeholder:text-[#33ff00]/30"
                     value={nickName}
                     onChange={(e) => setNickName(e.target.value)}
@@ -258,9 +211,10 @@ export default function Login() {
                 <div className="space-y-2">
                     <label className="block text-sm sm:text-base uppercase tracking-wider text-[#33ff00]/70">Password</label>
                     <div className="flex items-center bg-[#33ff00]/5 border-b-2 border-[#33ff00]/50 focus-within:border-[#33ff00] focus-within:bg-[#33ff00]/10 transition-all px-2 overflow-hidden">
-                    <span className="mr-2 text-sm sm:text-base opacity-80 whitespace-nowrap">PS C:\\Users\\Urano&gt;</span>
+                    <span className="mr-2 text-sm sm:text-base opacity-80 whitespace-nowrap">PS C:\Users\Urano&gt;</span>
                     <input
                       type="password"
+                      onKeyDown={playBip}
                       className="w-full bg-transparent py-2 text-lg sm:text-xl outline-none placeholder:text-[#33ff00]/30"
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}

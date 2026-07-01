@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback} from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { getPosts } from '../services/posts';
@@ -9,12 +9,16 @@ import PostImagePreview from '../components/PostImagePreview';
 import TerminalAlert from '../components/TerminalAlert';
 import AuthorsTerminal from '../components/AuthorsTerminal';
 import ThemeToggle from '../components/ThemeToggle';
+import ConfirmModal from '../components/ConfirmModal'; 
+import { useSound } from '../hooks/useSound';
 
 export default function Home() {
   const navigate = useNavigate();
   const { user, logout } = useAuth();
+  const { playBip } = useSound();
+  const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
+  
   const [activeTab] = useState('home');
-
   const [posts, setPosts] = useState<Post[]>([]);
   const [usersMap, setUsersMap] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
@@ -23,83 +27,9 @@ export default function Home() {
   const [isAuthorsOpen, setIsAuthorsOpen] = useState(false);
   
   const [alert, setAlert] = useState<{ message: string, type: 'success' | 'error' } | null>(null);
-
-  // Estado para controlar cuándo el usuario pasa el mouse por encima del widget destacado
   const [isWidgetHovered, setIsWidgetHovered] = useState(false);
-
-  // 🟢 UX CONTROL: Estados para la paginación simulada en cliente
   const [visibleCount, setVisibleCount] = useState(3);
   const [loadingMore, setLoadingMore] = useState(false);
-
-  const canvasRef = useRef<HTMLCanvasElement | null>(null);
-
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-
-    let animationFrameId: number;
-
-    const resizeCanvas = () => {
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight;
-    };
-    resizeCanvas();
-    window.addEventListener('resize', resizeCanvas);
-
-    const katakana = "ｱｲｳｴｵｶｷｸｹｺｻｼｽｾｿﾀﾁﾂﾃﾄﾅﾆﾇﾈﾉﾊﾋﾌﾍﾎﾏﾐﾑﾒﾓﾔﾕﾖﾗﾘﾙﾚﾛﾜﾝ1023456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-    const alphabet = katakana.split("");
-
-    const fontSize = 14;
-    const columns = canvas.width / fontSize;
-
-    const rainDrops: number[] = [];
-    for (let x = 0; x < columns; x++) {
-      rainDrops[x] = Math.random() * -100;
-    }
-
-    const draw = () => {
-      ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-      ctx.fillStyle = 'rgba(51, 255, 0, 0.45)'; 
-      ctx.font = fontSize + 'px monospace';
-
-      for (let i = 0; i < rainDrops.length; i++) {
-        const text = alphabet[Math.floor(Math.random() * alphabet.length)];
-        ctx.fillText(text, i * fontSize, rainDrops[i] * fontSize);
-
-        if (rainDrops[i] * fontSize > canvas.height && Math.random() > 0.975) {
-          rainDrops[i] = 0;
-        }
-        rainDrops[i]++;
-      }
-    };
-
-    let lastTime = 0;
-    const fps = 30;
-    const interval = 1000 / fps;
-
-    const animate = (timestamp: number) => {
-      if (!lastTime) lastTime = timestamp;
-      const elapsed = timestamp - lastTime;
-
-      if (elapsed > interval) {
-        draw();
-        lastTime = timestamp - (elapsed % interval);
-      }
-      animationFrameId = requestAnimationFrame(animate);
-    };
-
-    animationFrameId = requestAnimationFrame(animate);
-
-    return () => {
-      window.removeEventListener('resize', resizeCanvas);
-      cancelAnimationFrame(animationFrameId);
-    };
-  }, []);
 
   const fetchFeed = useCallback(async () => {
     try {
@@ -154,9 +84,11 @@ export default function Home() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [navigate]);
 
-  const handleLogout = () => {
+  const handleLogoutConfirm = () => {
+    playBip(); 
     logout();
     navigate('/login');
+    setIsLogoutModalOpen(false);
   };
 
   const handleLoadMore = () => {
@@ -170,9 +102,11 @@ export default function Home() {
   return (
     <div className="flex flex-col min-h-screen glow-text bg-black text-[#33ff00] selection:bg-[#33ff00] selection:text-black font-mono relative">
       
-      <canvas 
-        ref={canvasRef} 
-        className="fixed top-0 left-0 w-full h-full pointer-events-none z-0"
+      <ConfirmModal
+        isOpen={isLogoutModalOpen}
+        onClose={() => setIsLogoutModalOpen(false)}
+        onConfirm={handleLogoutConfirm}
+        title=" > ERROR [LOG]: ¿END_TRANSMISSION?"
       />
 
       <div className="fixed top-0 left-0 w-full h-full pointer-events-none z-10 bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.15)_50%)] bg-[length:100%_4px]"/>
@@ -203,7 +137,6 @@ export default function Home() {
 
         <nav className="border-b-2 border-[#33ff00] bg-black p-3 flex flex-col md:flex-row justify-between items-center gap-4 sticky top-0 z-40 shadow-[0_4px_15px_rgba(51,255,0,0.15)]">
           <div className="flex flex-wrap items-center gap-3">
-            
             <button 
               onClick={() => setIsAuthorsOpen(true)}
               className="font-bold text-lg mr-4 bg-[#33ff00] hover:bg-white text-black px-3 py-1 uppercase tracking-widest transition-colors cursor-pointer outline-none"
@@ -211,7 +144,6 @@ export default function Home() {
             >
               UHN_OS
             </button>
-
             <button 
               onClick={() => navigate('/home')}
               className={`px-4 py-1 uppercase text-sm font-bold border transition-all cursor-pointer ${activeTab === 'home' ? 'bg-[#33ff00] text-black border-[#33ff00]' : 'border-transparent hover:border-dashed hover:border-[#33ff00]'}`}
@@ -224,7 +156,6 @@ export default function Home() {
             >
               [2] Profile
             </button>
-            
             <button 
               onClick={() => setIsPostModalOpen(true)}
               className="px-4 py-1 uppercase text-sm font-bold border border-[#33ff00] hover:bg-[#33ff00] hover:text-black transition-all ml-2 cursor-pointer"
@@ -237,11 +168,9 @@ export default function Home() {
             <span className="hidden sm:inline uppercase text-sm">
               USER: @{user?.nickName || 'guest'}
             </span>
-            
             <ThemeToggle />
-            
             <button 
-              onClick={handleLogout}
+              onClick={() => setIsLogoutModalOpen(true)}
               className="hover:bg-red-500 hover:text-black text-red-500 border border-red-500 px-3 py-1 uppercase transition-colors text-sm font-bold cursor-pointer"
             >
               [X] LOGOUT
